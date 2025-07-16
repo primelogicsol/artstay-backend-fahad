@@ -1,0 +1,941 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  userId      String      @id @default(cuid())
+  email       String      @unique
+  password    String      @default("none")
+  accountType AccountType @default(NONE)
+
+  Artisan         Artisan?
+  Safari          Safari?
+  Fair            Fair?
+  Shop            Shop?
+  Restaurant      Restaurant?
+  TravelPlaner    TravelPlaner?
+  Hotel           Hotel?
+  LanguageService LanguageService?
+  CraftDocumentor CraftDocumentor?
+  EcoTransit      EcoTransit?
+}
+
+model Craft {
+  craftId   String     @id @default(cuid())
+  craftName String     @default("none")
+  craftSlug String     @default("none")
+  createdAt DateTime   @default(now())
+  updateAt  DateTime   @updatedAt
+  SubCraft  SubCraft[]
+  Artisan   Artisan[]
+}
+
+model SubCraft {
+  subCraftId   String    @id @default(cuid())
+  subCraftName String    @default("none")
+  subCraftSlug String    @default("none")
+  craftId      String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  craft        Craft     @relation(fields: [craftId], references: [craftId], onDelete: Cascade, onUpdate: Cascade)
+  Artisan      Artisan[]
+}
+
+model BookingDetail {
+  bookingDetailId        String                   @id @default(cuid())
+  firstName              String                   @default("none")
+  lastName               String                   @default("none")
+  email                  String                   @default("none")
+  phone                  String                   @default("none")
+  additionalNote         String                   @default("none")
+  address                String                   @default("none")
+  city                   String                   @default("none")
+  postalCode             String                   @default("none")
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  ArtisanBooking         ArtisanBooking[]
+  SafariBooking          SafariBooking[]
+  FairBooking            FairBooking[]
+  RestaurantBooking      RestaurantBooking[]
+  LanguageServiceBooking LanguageServiceBooking[]
+  TravelBooking          TravelBooking[]
+  ShopOrder              ShopOrder[]
+  DocumentorBooking      DocumentorBooking[]
+  EcoTransitBooking      EcoTransitBooking[]
+}
+
+/**
+ * ARTISAN
+ */
+
+model Artisan {
+  artisanId    String      @id @default(cuid())
+  firstName    String      @default("none")
+  lastName     String      @default("none")
+  dp           String      @default("none")
+  address      String      @default("none")
+  description  String      @default("none")
+  experience   Experience  @default(APPRENTICE)
+  education    Education   @default(NON_FORMAL)
+  training     Training    @default(NON_FORMAL)
+  certificate  Certificate @default(NONE)
+  recongnition Recognition @default(STATE)
+  isActive     Boolean     @default(false)
+  craftId      String
+  subCraftId   String
+  accountId    String      @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account        Account          @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  subCraft       SubCraft         @relation(fields: [subCraftId], references: [subCraftId], onDelete: Cascade, onUpdate: Cascade)
+  craft          Craft            @relation(fields: [craftId], references: [craftId], onDelete: Cascade, onUpdate: Cascade)
+  ArtisanPackage ArtisanPackage[]
+  Portfolio      Portfolio?
+  ArtisanBooking ArtisanBooking[] // Added relation
+}
+
+model ArtisanPackage {
+  packageId      String           @id @default(cuid())
+  duration       Int              @default(0)
+  features       String[]         @default([])
+  experience     String           @default("none")
+  price          Int              @default(0)
+  title          String           @default("none")
+  artisanId      String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  artisan        Artisan          @relation(fields: [artisanId], references: [artisanId], onDelete: Cascade, onUpdate: Cascade)
+  ArtisanBooking ArtisanBooking[]
+}
+
+model Portfolio {
+  portfolioId String   @id @default(cuid())
+  images      String[] @default([""])
+  artisanId   String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  artisan     Artisan  @relation(fields: [artisanId], references: [artisanId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model ArtisanBooking {
+  artisanBookingId String   @id @default(cuid())
+  startDate        String   @default("none")
+  endDate          String   @default("none")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  status           String   @default("new")
+
+  packageId       String
+  artisanId       String
+  bookingDetailId String
+
+  package       ArtisanPackage @relation(fields: [packageId], references: [packageId], onDelete: Cascade, onUpdate: Cascade)
+  artisan       Artisan        @relation(fields: [artisanId], references: [artisanId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail BookingDetail  @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+/**
+ * *
+ * SAFARI
+ */
+
+model Safari {
+  safariId    String   @id @default(cuid())
+  firstName   String   @default("none")
+  lastName    String   @default("none")
+  dp          String   @default("none")
+  address     String   @default("none")
+  description String   @default("none")
+  isActive    Boolean  @default(false)
+  accountId   String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  account       Account         @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  SafariTour    SafariTour[]
+  SafariBooking SafariBooking[]
+}
+
+model SafariTour {
+  tourId      String   @id @default(cuid())
+  title       String   @default("none")
+  operator    String   @default("none")
+  description String   @default("nones") @db.Text
+  duration    String   @default("none")
+  features    String[] @default([])
+  fee         Int      @default(0)
+  safariId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  safari        Safari          @relation(fields: [safariId], references: [safariId], onDelete: Cascade, onUpdate: Cascade)
+  SafariBooking SafariBooking[]
+}
+
+model SafariBooking {
+  safariBookingId String @id @default(cuid())
+  tourDate        String @default("none")
+  numberOfGuests  Int    @default(1)
+  totalAmount     Int    @default(0)
+  status          String @default("new")
+
+  // Required relations
+  tourId          String
+  safariId        String
+  bookingDetailId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tour          SafariTour    @relation(fields: [tourId], references: [tourId], onDelete: Cascade, onUpdate: Cascade)
+  safari        Safari        @relation(fields: [safariId], references: [safariId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail BookingDetail @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([tourId])
+  @@index([safariId])
+  @@index([tourDate])
+}
+
+/**
+ * FAIR
+ */
+
+model Fair {
+  fairId      String   @id @default(cuid())
+  firstName   String   @default("none")
+  lastName    String   @default("none")
+  dp          String   @default("none")
+  address     String   @default("none")
+  description String   @default("none")
+  isActive    Boolean  @default(false)
+  accountId   String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  account     Account       @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  FairEvent   FairEvent[]
+  FairBooking FairBooking[]
+}
+
+model FairEvent {
+  eventId     String        @id @default(cuid())
+  title       String        @default("none")
+  location    EventLocation @default(LOCAL)
+  vanue       String        @default("none")
+  startDate   String        @default("none")
+  endDate     String        @default("none")
+  organizer   String        @default("none")
+  fairType    FairType      @default(FAIR)
+  latitude    Float         @default(0.0)
+  longitude   Float         @default(0.0)
+  description String        @default("none") @db.Text
+  fairId      String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  fair        Fair          @relation(fields: [fairId], references: [fairId], onDelete: Cascade, onUpdate: Cascade)
+  FairBooking FairBooking[]
+}
+
+model FairBooking {
+  fairBookingId   String @id @default(cuid())
+  eventDate       String @default("none")
+  numberOfTickets Int    @default(1)
+  ticketType      String @default("general")
+  totalAmount     Int    @default(0)
+  status          String @default("new")
+
+  // Required relations
+  eventId         String
+  fairId          String
+  bookingDetailId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  event         FairEvent     @relation(fields: [eventId], references: [eventId], onDelete: Cascade, onUpdate: Cascade)
+  fair          Fair          @relation(fields: [fairId], references: [fairId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail BookingDetail @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([eventId])
+  @@index([fairId])
+  @@index([eventDate])
+}
+
+/**
+ * SHOP
+ */
+
+model Shop {
+  shopId              String   @id @default(cuid())
+  shopName            String   @default("none")
+  businessName        String   @default("none")
+  vendorType          String   @default("none")
+  address             String   @default("none")
+  city                String   @default("none")
+  state               String   @default("none")
+  country             String   @default("none")
+  zipCode             String   @default("none")
+  ownerName           String   @default("none")
+  phoneNumber         String   @default("none")
+  email               String   @default("none")
+  website             String   @default("none")
+  description         String   @db.Text
+  productCategories   String[] @default([])
+  isGICertified       Boolean  @default(false)
+  isHandmade          String   @default("Mixed")
+  pickupOptions       String[] @default([])
+  deliveryTime        String   @default("none")
+  deliveryFee         String   @default("none")
+  pricingStructure    String   @default("none")
+  orderProcessing     String   @default("none")
+  paymentMethods      String[] @default([])
+  returnPolicy        String   @default("none")
+  stockAvailability   String   @default("none")
+  offersCustomization Boolean  @default(false)
+  packagingType       String   @default("none")
+  shopTiming          String
+  workingDays         String[]
+  dp                  String   @default("none")
+  isActive            Boolean  @default(false)
+  accountId           String   @unique
+  agreedToTerms       Boolean  @default(false)
+  agreedToBlacklist   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account   Account     @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  products  Product[]
+  ShopOrder ShopOrder[]
+}
+
+model Product {
+  productId   String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  price       Float
+  images      String[]
+  category    String
+  material    String
+  dimensions  String?
+  weight      Float?
+  stock       Int      @default(0)
+  isAvailable Boolean  @default(true)
+  isActive    Boolean  @default(true)
+  craftType   String
+  artisanMade Boolean  @default(true)
+  shopId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shop          Shop            @relation(fields: [shopId], references: [shopId], onDelete: Cascade, onUpdate: Cascade)
+  ShopOrderItem ShopOrderItem[]
+}
+
+model ShopOrder {
+  orderId         String   @id @default(cuid())
+  isActive        Boolean  @default(true)
+  status          String   @default("new")
+  subtotal        Float    @default(0)
+  tax             Float    @default(0)
+  shipping        Float    @default(0)
+  total           Float    @default(0)
+  shopId          String
+  bookingDetailId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  shop          Shop            @relation(fields: [shopId], references: [shopId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail BookingDetail   @relation(fields: [bookingDetailId], references: [bookingDetailId])
+  orderItems    ShopOrderItem[]
+
+  @@index([shopId])
+}
+
+model ShopOrderItem {
+  orderItemId String   @id @default(cuid())
+  quantity    Int      @default(1)
+  price       Float    @default(0)
+  orderId     String
+  productId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  order   ShopOrder @relation(fields: [orderId], references: [orderId], onDelete: Cascade, onUpdate: Cascade)
+  product Product   @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+/**
+ * RESTAURANT
+ */
+model Restaurant {
+  restaurantId      String              @id @default(cuid())
+  name              String
+  description       String
+  location          String
+  cuisine           String[]
+  priceRange        String
+  image             String
+  rating            Float               @default(0)
+  isActive          Boolean             @default(false)
+  accountId         String              @unique
+  account           Account             @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  menu              MenuItem[]
+  RestaurantBooking RestaurantBooking[]
+}
+
+model MenuItem {
+  menuItemId        String              @id @default(cuid())
+  name              String
+  description       String
+  price             Float
+  category          MenuCategory
+  isVegetarian      Boolean             @default(false)
+  isVegan           Boolean             @default(false)
+  isGlutenFree      Boolean             @default(false)
+  spicyLevel        Int                 @default(0)
+  image             String
+  restaurantId      String
+  restaurant        Restaurant          @relation(fields: [restaurantId], references: [restaurantId], onDelete: Cascade, onUpdate: Cascade)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  DiningBookingItem DiningBookingItem[]
+
+  @@index([restaurantId])
+}
+
+model RestaurantBooking {
+  bookingId       String   @id @default(cuid())
+  isActive        Boolean  @default(false)
+  subtotal        Float    @default(0)
+  tax             Float    @default(0)
+  total           Float    @default(0)
+  bookingDetailId String
+  resturantId     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  resturant         Restaurant          @relation(fields: [resturantId], references: [restaurantId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail     BookingDetail       @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+  DiningBookingItem DiningBookingItem[]
+}
+
+model DiningBookingItem {
+  bookingItemId String @id @default(cuid())
+  quantity      Int    @default(0)
+  bookingId     String
+  menuItemId    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking  RestaurantBooking @relation(fields: [bookingId], references: [bookingId], onDelete: Cascade, onUpdate: Cascade)
+  menuItem MenuItem          @relation(fields: [menuItemId], references: [menuItemId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([bookingId])
+}
+
+/**
+ * TRAVEL PLANER
+ */
+model TravelPlaner {
+  travelPlanerId String          @id @default(cuid())
+  name           String          @default("none")
+  dp             String          @default("none")
+  description    String          @default("none")
+  location       String          @default("none")
+  priceRange     String          @default("none")
+  language       String[]        @default([])
+  speciality     String[]        @default([])
+  isActive       Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  accountId      String          @unique
+  account        Account         @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  TravelTour     TravelTour[]
+  TravelBooking  TravelBooking[]
+}
+
+model TravelTour {
+  tourId           String   @id @default(cuid())
+  title            String
+  description      String   @db.Text
+  image            String
+  duration         Int
+  isPricePerPerson Boolean  @default(true)
+  maxGroupSize     Int
+  price            Float
+  languages        String[]
+  features         String[]
+  isActive         Boolean  @default(true)
+  travelPlanerId   String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  travelPlaner  TravelPlaner    @relation(fields: [travelPlanerId], references: [travelPlanerId], onDelete: Cascade, onUpdate: Cascade)
+  TravelBooking TravelBooking[]
+}
+
+model TravelBooking {
+  travelBookingId String @id @default(cuid())
+  startDate       String @default("none")
+  endDate         String @default("none")
+  numberOfPeople  Int    @default(1)
+  totalAmount     Float  @default(0)
+  status          String @default("new")
+
+  // Required relations
+  tourId          String
+  travelPlanerId  String
+  bookingDetailId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // These relations would need to be added to your schema
+  tour          TravelTour    @relation(fields: [tourId], references: [tourId], onDelete: Cascade, onUpdate: Cascade)
+  travelPlaner  TravelPlaner  @relation(fields: [travelPlanerId], references: [travelPlanerId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail BookingDetail @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([tourId])
+  @@index([travelPlanerId])
+  @@index([startDate])
+}
+
+/**
+ * Hotel
+ */
+
+model Hotel {
+  hotelId     String     @id @default(cuid())
+  code        String     @default(cuid())
+  name        String     @default("none")
+  address     String     @default("none")
+  longitude   String     @default("")
+  latitude    String     @default("")
+  description String     @default("none")
+  firstName   String     @default("none")
+  lastName    String     @default("none")
+  email       String     @default("none")
+  phone       String     @default("none")
+  checkIn     String     @default("none")
+  checkOut    String     @default("none")
+  isActive    Boolean    @default(false)
+  images      String[]   @default([])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  accountId   String     @unique
+  account     Account    @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  rooms       Room[]
+  rateplans   RatePlan[]
+
+  @@unique([code])
+}
+
+model Room {
+  roomId        String         @id @default(cuid())
+  code          String         @default(cuid())
+  name          String         @default("none")
+  capacity      Int            @default(0)
+  area          Int            @default(0)
+  features      String[]
+  description   String         @default("none")
+  roomType      String         @default("none")
+  dp            String         @default("none")
+  beds          Int            @default(0)
+  quantity      Int            @default(1)
+  price         Int            @default(1)
+  isActive      Boolean        @default(true)
+  minimumstay   Int            @default(1)
+  images        String[]
+  hotelId       String
+  hotel         Hotel          @relation(fields: [hotelId], references: [hotelId], onDelete: Cascade, onUpdate: Cascade)
+  roomrateplans RoomRatePlan[]
+  roombookings  RoomBooking[]
+  blockdates    BlockDate[]
+
+  @@unique([code])
+}
+
+model RatePlan {
+  ratePlanId    String         @id @default(cuid())
+  code          String         @default(cuid())
+  name          String         @default("none")
+  description   String         @default("none")
+  mealId        Int            @default(15)
+  isActive      Boolean        @default(true)
+  hotelId       String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  hotel         Hotel          @relation(fields: [hotelId], references: [hotelId], onDelete: Cascade, onUpdate: Cascade)
+  roomrateplans RoomRatePlan[]
+
+  @@unique([code])
+}
+
+model RoomRatePlan {
+  rrpId      String      @id @default(uuid())
+  occupancy  Int         @default(0)
+  rateId     String
+  roomId     String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  room       Room        @relation(fields: [roomId], references: [roomId], onDelete: Cascade, onUpdate: Cascade)
+  rate       RatePlan    @relation(fields: [rateId], references: [ratePlanId], onDelete: Cascade, onUpdate: Cascade)
+  roomprices RoomPrice[]
+
+  @@unique([roomId, rateId, occupancy])
+  @@index([roomId, rateId])
+}
+
+model RoomPrice {
+  priceId      String       @id @default(cuid())
+  startDate    String       @default("none")
+  endDate      String       @default("none")
+  planCode     String       @default("none")
+  price        Int          @default(0)
+  rrpId        String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  roomrateplan RoomRatePlan @relation(fields: [rrpId], references: [rrpId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model RoomBooking {
+  bookingId       String            @id @default(cuid())
+  startDate       String            @default("none")
+  endDate         String            @default("none")
+  price           Int               @default(0)
+  quantity        Int               @default(1)
+  adults          Int               @default(1)
+  children        Int               @default(0)
+  extras          String[]
+  bookingDetailId String
+  roomId          String
+  isActive        Boolean           @default(true)
+  isRefund        Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  room            Room              @relation(fields: [roomId], references: [roomId], onDelete: Cascade, onUpdate: Cascade)
+  BookingDetail   RoomBookingDetail @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model RoomBookingDetail {
+  bookingDetailId      String        @id @default(cuid())
+  city                 String        @default("none")
+  country              String        @default("none")
+  dob                  String        @default("none")
+  phone                String        @default("none")
+  zip                  String        @default("none")
+  address              String        @default("none")
+  firstName            String        @default("none")
+  lastName             String        @default("none")
+  email                String        @default("none")
+  arrivalTime          String        @default("none")
+  additionalInfo       String        @default("none")
+  status               String        @default("new")
+  bookingReservationId String        @default(cuid())
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  roombookings         RoomBooking[]
+
+  @@unique([bookingReservationId])
+  @@index([bookingReservationId])
+}
+
+model BlockDate {
+  blockId   String   @id @default(uuid())
+  startDate String   @default("none")
+  endDate   String   @default("none")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [roomId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+/**
+ * LANGUAGE
+ */
+
+model LanguageService {
+  languageServiceId      String                   @id @default(cuid())
+  profileName            String                   @default("none")
+  firstName              String                   @default("none")
+  lastName               String                   @default("none")
+  description            String                   @default("none") @db.Text
+  experience             String                   @default("none")
+  languages              String[]                 @default([])
+  specialization         String[]                 @default([])
+  hourlyRate             Float                    @default(0)
+  minBookingHours        Int                      @default(1)
+  maxBookingHours        Int                      @default(8)
+  availability           String[]                 @default([])
+  startTime              String                   @default("09:00")
+  endTime                String                   @default("18:00")
+  location               String                   @default("none")
+  serviceMode            String[]                 @default([])
+  certification          String[]                 @default([])
+  qualification          String                   @default("none")
+  profileImage           String                   @default("none")
+  portfolio              String[]                 @default([])
+  rating                 Float                    @default(0)
+  isActive               Boolean                  @default(false)
+  accountId              String                   @unique
+  account                Account                  @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  LanguageServiceBooking LanguageServiceBooking[]
+}
+
+model LanguageServiceBooking {
+  languageBookingId String @id @default(cuid())
+  bookingDate       String @default("none")
+  bookingTime       String @default("none")
+  hours             Int    @default(1)
+  sourceLanguage    String @default("none")
+  targetLanguage    String @default("none")
+  totalAmount       Float  @default(0)
+  status            String @default("new")
+
+  // Required relations
+  languageServiceId String
+  bookingDetailId   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  languageService LanguageService @relation(fields: [languageServiceId], references: [languageServiceId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail   BookingDetail   @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([languageServiceId])
+  @@index([bookingDate])
+}
+
+/**
+ * Documentor
+ */
+model CraftDocumentor {
+  documentorId    String   @id @default(cuid())
+  firstName       String   @default("none")
+  lastName        String   @default("none")
+  dp              String   @default("none")
+  address         String   @default("none")
+  description     String   @default("none")
+  yearsExperience Int      @default(0)
+  specialization  String[] @default([])
+  craftFocusAreas String[] @default([])
+  languages       String[] @default([])
+  isActive        Boolean  @default(false)
+  accountId       String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  account             Account              @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  DocumentorPackage   DocumentorPackage[]
+  DocumentorPortfolio DocumentorPortfolio?
+  DocumentorBooking   DocumentorBooking[]
+}
+
+model DocumentorPortfolio {
+  portfolioId  String   @id @default(cuid())
+  images       String[] @default([])
+  documentorId String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documentor CraftDocumentor @relation(fields: [documentorId], references: [documentorId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model DocumentorPackage {
+  packageId    String         @id @default(cuid())
+  title        String         @default("none")
+  description  String         @default("none")
+  duration     Int            @default(1)
+  deliverables String[]       @default([])
+  price        Int            @default(0)
+  documentorId String
+  packageType  DocumentorType @default(PHOTOGRAPHY)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  documentor        CraftDocumentor     @relation(fields: [documentorId], references: [documentorId], onDelete: Cascade, onUpdate: Cascade)
+  DocumentorBooking DocumentorBooking[]
+}
+
+model DocumentorBooking {
+  bookingId       String @id @default(cuid())
+  startDate       String @default("none")
+  endDate         String @default("none")
+  location        String @default("none")
+  specialRequests String @default("none")
+  status          String @default("new")
+  totalAmount     Int    @default(0)
+
+  packageId       String
+  documentorId    String
+  bookingDetailId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  package       DocumentorPackage @relation(fields: [packageId], references: [packageId], onDelete: Cascade, onUpdate: Cascade)
+  documentor    CraftDocumentor   @relation(fields: [documentorId], references: [documentorId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail BookingDetail     @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+enum DocumentorType {
+  PHOTOGRAPHY
+  VIDEOGRAPHY
+  DRONE
+  HYBRID
+}
+
+/**
+ * ENUMS
+ */
+
+enum MenuCategory {
+  STARTER
+  MAIN_COURSE
+  DESSERT
+  BEVERAGE
+}
+
+enum FairType {
+  FAIR
+  EXHIBITION
+  MUSEUM
+}
+
+enum EventLocation {
+  INTERNATIONAL
+  NATIONAL
+  LOCAL
+}
+
+enum Education {
+  FORMAL
+  NON_FORMAL
+}
+
+enum Training {
+  FORMAL
+  NON_FORMAL
+}
+
+enum Certificate {
+  NONE
+  PROFESSIONAL
+  TRADE
+  WORKSHOP
+}
+
+enum Recognition {
+  STATE
+  NATIONAL
+  INTERNATIONAL
+}
+
+enum Experience {
+  APPRENTICE
+  CRAFTMAN
+  MASTER
+  GRANDMASTER
+}
+
+enum AccountType {
+  NONE
+  ARTISAN
+  SAFARI
+  FAIRS
+  BUSINESS
+  HOTEL
+  RESTAURANT
+  TRAVEL_PLANER
+  LANGUAGE
+  CRAFT_DOCUMENTOR
+  ECO_TRANSIT  
+  SUPERADMIN
+  ARTISAN_ADMIN
+  SAFARI_ADMIN
+  FAIRS_ADMIN
+  BUSINESS_ADMIN
+  HOTEL_ADMIN
+  RESTAURANT_ADMIN
+  TRAVEL_PLANER_ADMIN
+  LANGUAGE_ADMIN
+  CRAFT_DOCUMENTOR_ADMIN
+}
+
+/**
+ * ECO TRANSIT
+ */
+model EcoTransit {
+  transitId    String   @id @default(cuid())
+  name         String   @default("none")
+  dp           String   @default("none")
+  address      String   @default("none")
+  description  String   @default("none")
+  isActive     Boolean  @default(false)
+  accountId    String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  account           Account              @relation(fields: [accountId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  EcoTransitOption  EcoTransitOption[]
+  EcoTransitBooking EcoTransitBooking[]
+}
+
+model EcoTransitOption {
+  optionId     String   @id @default(cuid())
+  title        String   @default("none")
+  operator     String   @default("none")
+  description  String   @default("none")
+  duration     String   @default("none")
+  features     String[] @default([])
+  baseFee      Float    @default(0)
+  transitId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transit            EcoTransit           @relation(fields: [transitId], references: [transitId], onDelete: Cascade, onUpdate: Cascade)
+  EcoTransitBooking  EcoTransitBooking[]
+}
+
+model EcoTransitBooking {
+  transitBookingId String   @id @default(cuid())
+  optionId        String
+  transitId       String
+  bookingDetailId String
+  travelDate      String   @default("none")
+  numberOfPassengers Int   @default(1)
+  distance        Float   @default(0) // in kilometers
+  totalAmount     Float   @default(0)
+  status          String  @default("new")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  option         EcoTransitOption @relation(fields: [optionId], references: [optionId], onDelete: Cascade, onUpdate: Cascade)
+  transit        EcoTransit       @relation(fields: [transitId], references: [transitId], onDelete: Cascade, onUpdate: Cascade)
+  bookingDetail  BookingDetail    @relation(fields: [bookingDetailId], references: [bookingDetailId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([optionId])
+  @@index([transitId])
+  @@index([travelDate])
+}
