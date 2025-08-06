@@ -70,10 +70,24 @@ export const ecoTransitService = {
   },
   getAllEcoTransits: async () => {
     try {
+      // Get all eco transit records with related data
       const ecoTransits = await prisma.ecoTransit.findMany({
         orderBy: { createdAt: "desc" },
+        include: {
+          account: {
+            select: {
+              userId: true,
+              email: true,
+              accountType: true,
+            }
+          },
+          EcoTransitOption: true,
+        }
       });
-      return { status: "success", message: "all eco transits", data: ecoTransits };
+      
+      logger.info(`Found ${ecoTransits.length} eco transit records`);
+      
+      return { status: "success", message: "Eco transit detail", data: ecoTransits };
     } catch (error) {
       logger.error(error);
       throw new Error("Failed to fetch eco transits");

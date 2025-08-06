@@ -29,7 +29,7 @@ router.get("/:fairId", fairDetailById);
 
 router.put("/toggle-status",toggleFairStatus);
 router.post('/create-booking',createFairBooking)
-router.post("/event", validate(FairEventSchema), createFairEvent);
+router.post("/create-event", validate(FairEventSchema), createFairEvent);
 router.patch("/event", validate(UpdateFairEventSchema), updateFairEvent);
 
 export const fairRouter = router;

@@ -14,7 +14,7 @@ router.get('/bookings/:accountId', getAllSafariBookings);
 router.get('/application-status/:accountId', getApplicationStatus)
 router.get('/:safariId', safariDetailById)
 
-router.post('/tour',validate(SafariTourSchema), createSafariTour)
+router.post('/create-tour',validate(SafariTourSchema), createSafariTour)
 router.put('/toggle-status', updateSafariStatus)
 router.post('/create-booking',createSafariBooking)
 

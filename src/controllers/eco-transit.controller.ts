@@ -65,10 +65,12 @@ export const getEcoTransitBookings = async (req: Request, res: Response) => {
 
 export const getAllEcoTransits = async (req: Request, res: Response) => {
     try {
+        logger.info('getAllEcoTransits endpoint called');
         const result = await ecoTransitService.getAllEcoTransits();
+        logger.info('getAllEcoTransits result:', JSON.stringify(result, null, 2));
         res.status(200).json(result);
     } catch (error) {
-        logger.error(error);
+        logger.error('Error in getAllEcoTransits:', error);
         res.status(500).json({ status: 'error', message: error instanceof Error ? error.message : 'Failed to fetch eco transits', data: null });
     }
 };
